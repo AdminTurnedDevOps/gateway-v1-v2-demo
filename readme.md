@@ -64,4 +64,6 @@ ArgoCD installation is available as well: https://docs.solo.io/gloo-edge/latest/
 
 With the Gloo Edge/Gateway is installation, you will have access to enterprise-grade APIs (Customer Resource Definitions) that you can use to extend the capabilities of Kubernetes (much like any other CRD).
 
+These extensive and mature APIs will give you the ability to manage/route traffic, set policies, and configure authentication.
+
 ![](images/2.png)
