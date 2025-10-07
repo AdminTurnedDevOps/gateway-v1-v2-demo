@@ -137,10 +137,12 @@ licenseKey:
 EOF
 ```
 
+3. Ensure that all resources are up and running as expected.
 ```
 kubectl get all -n gloo-portal
 ```
 
+4. To reach the portal (pending Portal configurations)
 ```
 kubectl port-forward -n gloo-portal svc/gloo-portal-admin-server 8080:8080
 ```
