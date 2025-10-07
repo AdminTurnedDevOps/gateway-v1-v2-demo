@@ -69,3 +69,60 @@ With the Gloo Edge/Gateway is installation, you will have access to enterprise-g
 These extensive and mature APIs will give you the ability to manage/route traffic, set policies, and configure authentication.
 
 ![](images/2.png)
+
+## Sample App Deployment
+
+1. Create the Namespace for the microapp (extensive decoupled app)
+```
+kubectl create ns microapp --context=$CLUSTER1
+kubectl create ns microapp --context=$CLUSTER2
+```
+
+2. Deploy the sample decoupled application stack
+```
+kubectl apply -f sampleapp-microdemo/microservices-demo/release/kubernetes-manifests.yaml -n microapp --context=$CLUSTER1
+kubectl apply -f sampleapp-microdemo/microservices-demo/release/kubernetes-manifests.yaml -n microapp --context=$CLUSTER2
+```
+
+3. Confirm that the app stack is running
+```
+kubectl get pods -n microapp --context=$CLUSTER1
+kubectl get pods -n microapp --context=$CLUSTER2
+```
+
+4. Create a Gateway for the application
+
+```
+kubectl apply --context=$CLUSTER1 -f - <<EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: frontend-gateway
+  namespace: microapp
+spec:
+  gatewayClassName: istio
+  listeners:
+  - name: frontend
+    port: 80
+    protocol: HTTP
+EOF
+```
+
+### See App and Scale
+
+Grab the public IP and try to reach your app via a browser.
+```
+kubectl get gateway -n microapp
+```
+
+Scale the app down on cluster 1 to confirm failover occurs.
+```
+kubectl scale deploy  -n microapp frontend --replicas=0 --context $CLUSTER1
+```
+
+Scale back up for multi-cluster HA.
+```
+kubectl scale deploy  -n microapp frontend --replicas=1 --context $CLUSTER1
+```
+
+## Monitoring, Observability, & Telemetry
