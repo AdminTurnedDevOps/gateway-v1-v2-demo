@@ -34,7 +34,7 @@ helm repo update
 ```
 export EDGE_LICENSE_KEY=
 
-helm install gloo glooe/gloo-ee --namespace gloo-system \
+helm upgrade --install gloo glooe/gloo-ee --namespace gloo-system \
   --create-namespace \
   --set-string license_key=$EDGE_LICENSE_KEY
 ```
@@ -57,6 +57,13 @@ However, with Enterprise you will get the following out of the box:
 - Grafana
 - Envoy-integrated rate limiting
 - Caching
+
+### UI
+
+You can access the Gloo Edge/Gateway UI by doing the following:
+```
+kubectl port-forward svc/gloo-fed-console -n gloo-system 8090:809
+```
 
 #### Argo/GitOps
 
@@ -108,21 +115,37 @@ spec:
 EOF
 ```
 
-### See App and Scale
+## Gloo Gateway/Edge Portal
 
-Grab the public IP and try to reach your app via a browser.
+1. Add the Gloo Portal Helm Chart
 ```
-kubectl get gateway -n microapp
-```
+helm repo add gloo-portal https://storage.googleapis.com/dev-portal-helm
 
-Scale the app down on cluster 1 to confirm failover occurs.
-```
-kubectl scale deploy  -n microapp frontend --replicas=0 --context $CLUSTER1
+helm repo update
 ```
 
-Scale back up for multi-cluster HA.
+2. Install the portal (consuming the current Gloo Edge/Gateway license key)
 ```
-kubectl scale deploy  -n microapp frontend --replicas=1 --context $CLUSTER1
+helm upgrade --install gloo-portal gloo-portal/gloo-portal \
+-n gloo-portal \
+--create-namespace \
+-f - <<EOF
+glooEdge:
+  enabled: true
+licenseKey:
+  secretRef:
+    name: license
+    namespace: gloo-system
+    key: license-key
+EOF
+```
+
+```
+kubectl get all -n gloo-portal
+```
+
+```
+kubectl port-forward -n gloo-portal svc/gloo-portal-admin-server 8080:8080
 ```
 
 ## Monitoring, Observability, & Telemetry
