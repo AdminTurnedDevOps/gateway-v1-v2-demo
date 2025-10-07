@@ -81,26 +81,23 @@ These extensive and mature APIs will give you the ability to manage/route traffi
 
 1. Create the Namespace for the microapp (extensive decoupled app)
 ```
-kubectl create ns microapp --context=$CLUSTER1
-kubectl create ns microapp --context=$CLUSTER2
+kubectl create ns microapp
 ```
 
 2. Deploy the sample decoupled application stack
 ```
-kubectl apply -f sampleapp-microdemo/microservices-demo/release/kubernetes-manifests.yaml -n microapp --context=$CLUSTER1
-kubectl apply -f sampleapp-microdemo/microservices-demo/release/kubernetes-manifests.yaml -n microapp --context=$CLUSTER2
+kubectl apply -f sampleapp-microdemo/microservices-demo/release/kubernetes-manifests.yaml -n microapp
 ```
 
 3. Confirm that the app stack is running
 ```
-kubectl get pods -n microapp --context=$CLUSTER1
-kubectl get pods -n microapp --context=$CLUSTER2
+kubectl get pods -n microapp
 ```
 
 4. Create a Gateway for the application
 
 ```
-kubectl apply --context=$CLUSTER1 -f - <<EOF
+kubectl apply -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
