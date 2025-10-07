@@ -1,6 +1,6 @@
-Gloo Gateway (Gloo Edge) Demo
+# Gloo Gateway (Gloo Edge) Demo
 
-
+![](images/1.png)
 
 ### CLI
 ```
