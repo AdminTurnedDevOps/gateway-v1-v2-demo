@@ -20,17 +20,23 @@ export PATH=$HOME/.gloo/bin:$PATH
 ```
 
 ```
-glooctl install gateway
+export EDGE_LICENSE_KEY=
+glooctl install gateway enterprise --license-key $EDGE_LICENSE_KEY
 ```
 
 ### Helm
 ```
-helm repo add gloo https://storage.googleapis.com/solo-public-helm
+helm repo add glooe https://storage.googleapis.com/gloo-ee-helm
+
 helm repo update
 ```
 
 ```
-helm install gloo gloo/gloo --namespace gloo-system --create-namespace
+export EDGE_LICENSE_KEY=
+
+helm install gloo glooe/gloo-ee --namespace gloo-system \
+  --create-namespace \
+  --set-string license_key=$EDGE_LICENSE_KEY
 ```
 
 After the installation, you will see two primary services (and Pods):
@@ -51,3 +57,11 @@ NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
 deployment.apps/gateway-proxy   1/1     1            1           11m
 deployment.apps/gloo            1/1     1            1           11m
 ```
+
+ArgoCD installation is available as well: https://docs.solo.io/gloo-edge/latest/installation/enterprise/#argo-cd-installation
+
+## API/CRDs
+
+With the Gloo Edge/Gateway is installation, you will have access to enterprise-grade APIs (Customer Resource Definitions) that you can use to extend the capabilities of Kubernetes (much like any other CRD).
+
+![](images/2.png)
