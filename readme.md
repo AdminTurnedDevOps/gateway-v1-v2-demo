@@ -2,6 +2,15 @@
 
 ![](images/1.png)
 
+The purpose of this demo is to showcase how to not only install and configure Gloo Gateway with Gloo Edge APIs, but to have comprehensive tests for:
+
+- Resilience
+- Reliability
+- Failover
+- Uptime
+
+And overall traffic management needs
+
 ### CLI
 ```
 curl -sL https://run.solo.io/gloo/install | sh
