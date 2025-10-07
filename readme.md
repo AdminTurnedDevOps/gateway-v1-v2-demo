@@ -11,6 +11,8 @@ The purpose of this demo is to showcase how to not only install and configure Gl
 
 And overall traffic management needs
 
+## Installation
+
 ### CLI
 ```
 curl -sL https://run.solo.io/gloo/install | sh
