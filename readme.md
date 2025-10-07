@@ -55,7 +55,7 @@ However, with Enterprise you will get the following out of the box:
 - External Auth
 - Prometheus
 - Grafana
-- Rate limiting configs
+- Envoy-integrated rate limiting
 - Caching
 
 #### Argo/GitOps
