@@ -1,6 +1,8 @@
 # Gloo Gateway V1/V2 Demo
+<p align="center">
+ <img src="images/1.png?raw=true" alt="Logo" width="50%" height="50%" />
+</p>
 
-![](images/1.png)
 
 The purpose of this demo is to showcase how to not only install and configure Gloo Gateway (v1 for portal and v2 for everything else), but to have comprehensive tests for:
 
