@@ -162,8 +162,6 @@ frontend-gateway   gloo-gateway-v2   x.x.x.x   True         36m
 ![](images/3.png)
 
 ## Gateway UI
-
-```
 1. Capture your cluster name as an environment variable for the UI installation in the coming steps.
 ```
 export CLUSTER_NAME=fegatewayv1
