@@ -179,4 +179,4 @@ terraform destroy --auto-approve
 ```
 
 # Gloo Gateway V1 (Portal)
-In this section, you will find the full configuration for setting up Gloo Gateway v1. The reason why v1 will be used is because Portal will not be GA until Gloo Gateway v2.2., which should be out in January of 2026.
+In this section, you will find the full configuration for setting up Gloo Gateway v1. The reason why v1 will be used is because Portal will not be GA until Gloo Gateway v2.2.
