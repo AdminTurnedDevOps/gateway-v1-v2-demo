@@ -45,7 +45,9 @@ terraform plan
 terraform apply --auto-approve
 ```
 
-![](images/2.png)
+<p align="center">
+ <img src="images/2.png?raw=true" alt="Logo" width="50%" height="50%" />
+</p>
 
 
 ### Helm
