@@ -230,6 +230,39 @@ kubectl port-forward deployment/gloo-mesh-ui -n gloo-system 8090
 
 ## Monitoring, Observability, & Telemetry
 
+1. Add the Grafana Helm Chart
+```
+helm repo add grafana https://grafana.github.io/helm-charts
+```
+
+2. Install Grafana in the `monitoring` Namespace
+```
+helm install grafana grafana/grafana --namespace monitoring --create-namespace
+```
+
+3. Retrieve the default admin password from the Kubernetes Secret.
+
+The default username is: `admin`
+
+```
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+4. Access the Grafana UI
+```
+kubectl port-forward deployment/my-grafana 3000:3000 --namespace monitoring
+```
+
+5. Add a new metrics endpoint by going to: **Connections > Data Sources > Choose Prometheus
+
+Under the Connection URL, add the following:
+```
+http://prometheus-server.gloo-system.svc.cluster.local:80
+```
+
+You'll now be able to see Metrics and create Dashboard in Grafana
+
+![](images/5.png)
 
 
 ## Cleanup
