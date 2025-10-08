@@ -134,7 +134,7 @@ spec:
 EOF
 ```
 
-## Gloo Portal
+
 
 ## Monitoring, Observability, & Telemetry
 
