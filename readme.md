@@ -163,8 +163,76 @@ frontend-gateway   gloo-gateway-v2   x.x.x.x   True         36m
 
 ## Gateway UI
 
+```
+1. Capture your cluster name as an environment variable for the UI installation in the coming steps.
+```
+export CLUSTER_NAME=fegatewayv1
+
+echo $CLUSTER_NAME
+```
+
+2. Add the Gloo Platform Chart (for the UI)
+```
+helm repo add gloo-platform https://storage.googleapis.com/gloo-platform/helm-charts
+helm repo update
+```
+
+3. Install the Gloo Platform CRDs
+```
+helm upgrade -i gloo-platform-crds gloo-platform/gloo-platform-crds \
+--namespace=gloo-system \
+--version=2.10.1 \
+--set installEnterpriseCrds=false
+```
+
+4. Deploy the UI Helm Chart
+
+You'll see that the enterprise version of the chart gives you:
+- The UI
+- Gloo Insights that you can see from the portal
+- Prometheus enabled for metrics collection
+- A Telemetry collector
+
+```
+helm upgrade -i gloo-platform gloo-platform/gloo-platform \
+--namespace gloo-system \
+--version=2.10.1 \
+-f - <<EOF
+common:
+  adminNamespace: "gloo-system"
+  cluster: $CLUSTER_NAME
+glooInsightsEngine:
+  enabled: true
+glooAnalyzer:
+  enabled: true
+glooUi:
+  enabled: true
+licensing:
+  glooGatewayLicenseKey: $GLOO_GATEWAY_LICENSE_KEY
+prometheus:
+  enabled: true
+telemetryCollector:
+  enabled: true
+  mode: deployment
+  replicaCount: 1
+EOF
+```
+
+5. Ensure that the UI it's running as expected (you should see 3 containers in the Pod)
+```
+kubectl get pods -n gloo-system
+```
+
+6. Access the UI
+```
+kubectl port-forward deployment/gloo-mesh-ui -n gloo-system 8090
+```
+
+![](images/4.png)
 
 ## Monitoring, Observability, & Telemetry
+
+
 
 ## Cleanup
 To prepare your environment for the next part of the demo, which will be on Gloo Gateway v1 with Portal, destroy your cluster.
