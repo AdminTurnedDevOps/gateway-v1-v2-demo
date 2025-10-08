@@ -153,8 +153,8 @@ EOF
 kubectl get gateway -n microapp
 ```
 
+Example output below:
 ```
-kubectl get gateway -n microapp
 NAME               CLASS             ADDRESS         PROGRAMMED   AGE
 frontend-gateway   gloo-gateway-v2   x.x.x.x   True         36m
 ```
