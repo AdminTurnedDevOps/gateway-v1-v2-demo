@@ -383,6 +383,8 @@ kubectl get gatewayclass gloo-gateway
 
 In this previous section, you installed Gloo Gateway v1. If you take a look at the Helm config, the `portal: true` was already added in, so you won't need to do any extra configuration for the installation of Portal.
 
+### Installation Of Portal
+
 1. Ensure Portal is up and operational
 ```
 kubectl get pods -n gloo-system -l app=gateway-portal-web-server
@@ -428,3 +430,17 @@ Checking Kubernetes HTTPRoutes... OK
 Skipping Gloo Instance check -- Gloo Federation not detected.
 No problems detected.
 ```
+
+### Deploy Sample Apps
+
+For this section, please use the docs below and deploy the **Tracks** sample app
+
+https://docs.solo.io/gateway/latest/portal/tutorials/setup/#apps
+
+### Create API Products
+
+https://docs.solo.io/gateway/latest/portal/tutorials/portal/
+
+### Create A Portal
+
+https://docs.solo.io/gateway/latest/portal/tutorials/apis/
