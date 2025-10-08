@@ -39,10 +39,6 @@ helm upgrade -i gloo-gateway oci://us-docker.pkg.dev/solo-public/gloo-gateway/ch
 --set licensing.agentgatewayLicenseKey=$AGENTGATEWAY_LICENSE_KEY
 ```
 
-With the free installation, you will see the following:
-
-FILL IN!!!!
-
 
 #### Argo/GitOps
 
@@ -68,7 +64,7 @@ kubectl get pods -n microapp
 4. Create a Gateway for the application
 
 ```
-kubectl apply -f - <<EOF
+kubectl apply --context=$CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -80,42 +76,26 @@ spec:
   - name: frontend
     port: 80
     protocol: HTTP
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: frontend
+  namespace: microapp
+spec:
+  parentRefs:
+  - name: frontend-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+      - name: frontend
+        port: 80
 EOF
 ```
 
-## Gloo Gateway/Edge Portal
-
-1. Add the Gloo Portal Helm Chart
-```
-helm repo add gloo-portal https://storage.googleapis.com/dev-portal-helm
-
-helm repo update
-```
-
-2. Install the portal (consuming the current Gloo Edge/Gateway license key)
-```
-helm upgrade --install gloo-portal gloo-portal/gloo-portal \
--n gloo-portal \
---create-namespace \
--f - <<EOF
-glooEdge:
-  enabled: true
-licenseKey:
-  secretRef:
-    name: license
-    namespace: gloo-system
-    key: license-key
-EOF
-```
-
-3. Ensure that all resources are up and running as expected.
-```
-kubectl get all -n gloo-portal
-```
-
-4. To reach the portal (pending Portal configurations)
-```
-kubectl port-forward -n gloo-portal svc/gloo-portal-admin-server 8080:8080
-```
+## Gloo Portal
 
 ## Monitoring, Observability, & Telemetry
