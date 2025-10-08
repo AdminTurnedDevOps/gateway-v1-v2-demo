@@ -267,6 +267,8 @@ You'll now be able to see Metrics and create Dashboard in Grafana
 **ADD IN LIVE TRAFFIC DEBUGGING**
 **ADD IN more observability pieces**
 
+https://docs.solo.io/gateway/2.0.x/observability/
+
 ## Rate Limiting
 
 WIP
@@ -279,6 +281,13 @@ WIP
 - Canary
 - Authenication
 
+https://docs.solo.io/gateway/2.0.x/traffic-management/
+
+## Resiliency
+
+WIP
+
+https://docs.solo.io/gateway/2.0.x/resiliency/
 
 ## Cleanup
 To prepare your environment for the next part of the demo, which will be on Gloo Gateway v1 with Portal, destroy your cluster.
