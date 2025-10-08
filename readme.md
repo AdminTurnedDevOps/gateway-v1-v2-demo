@@ -266,7 +266,14 @@ You'll now be able to see Metrics and create Dashboard in Grafana
 
 ## Rate Limiting
 
-## 
+WIP
+
+## Advanced Routing
+
+WIP
+
+- Load balanced routing
+- 
 
 
 ## Cleanup
