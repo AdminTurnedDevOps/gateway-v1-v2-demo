@@ -99,6 +99,12 @@ kubectl apply -f ggv2/sampleapp-microdemo/microservices-demo/release/kubernetes-
 kubectl get pods -n microapp
 ```
 
+You can also see the Services that are deployed, which is what you'll use to create the backend routes in the next step.
+
+```
+kubectl get svc -n microapp
+```
+
 4. Create a Gateway for the application
 
 ```
