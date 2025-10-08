@@ -262,7 +262,7 @@ http://prometheus-server.gloo-system.svc.cluster.local:80
 
 You'll now be able to see Metrics and create Dashboard in Grafana
 
-![](images/5.png)
+![](images/6.png)
 
 
 ## Cleanup
