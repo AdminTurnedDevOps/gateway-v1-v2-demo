@@ -145,6 +145,20 @@ spec:
 EOF
 ```
 
+5. Check to see the gateway IP address.
+
+```
+kubectl get gateway -n microapp
+```
+
+```
+kubectl get gateway -n microapp
+NAME               CLASS             ADDRESS         PROGRAMMED   AGE
+frontend-gateway   gloo-gateway-v2   x.x.x.x   True         36m
+```
+
+![](images/3.png)
+
 
 
 ## Monitoring, Observability, & Telemetry
