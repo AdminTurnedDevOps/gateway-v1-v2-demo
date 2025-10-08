@@ -250,7 +250,7 @@ kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-pass
 
 4. Access the Grafana UI
 ```
-kubectl port-forward deployment/my-grafana 3000:3000 --namespace monitoring
+kubectl port-forward svc/grafana 3000:80 --namespace monitoring
 ```
 
 5. Add a new metrics endpoint by going to: **Connections > Data Sources > Choose Prometheus
