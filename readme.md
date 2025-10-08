@@ -279,3 +279,96 @@ terraform destroy --auto-approve
 
 # Gloo Gateway V1 (Portal)
 In this section, you will find the full configuration for setting up Gloo Gateway v1. The reason why v1 will be used is because Portal will not be GA until Gloo Gateway v2.2.
+
+## Installation Gateway v1
+
+### Cluster
+
+For the purposes of this demo, you can use any managed Kubernetes cluster you'd like, but if you need a ready-to-go config, you can deploy GKE via the Terraform configs in this repo.
+
+If you use the Terraform configs, remember to be authenticated on your local terminal to GCP.
+
+
+1. `cd` into the **ggv2/gke1** directory.
+
+2. Update the variables in `variables.tf` to reflect your variables (or create a `terraform.tfvars` file)
+
+3. Initialize the TF config
+```
+terraform init
+```
+
+4. Run the plan
+```
+terraform plan
+```
+
+5. Apply the TF configs to create the GKE cluster with auto-approve
+```
+terraform apply --auto-approve
+```
+
+<p align="center">
+ <img src="images/2.png?raw=true" alt="Logo" width="50%" height="50%" />
+</p>
+
+### Helm
+
+1. Set your Gloo License Key variable
+```
+export GLOO_GATEWAY_LICENSE_KEY=
+```
+
+2. Install Kubernetes Gateway API
+```
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml
+```
+
+3. Add the Gloo Gateway v1 Enterprise Helm repo
+```
+helm repo add glooe https://storage.googleapis.com/gloo-ee-helm
+helm repo update
+```
+
+4. Install GGv1 Enterprise
+
+The installation also includes:
+- Grafana
+- Prometheus
+
+```
+helm install -n gloo-system gloo glooe/gloo-ee \
+--create-namespace \
+--version 1.20.1 \
+--set-string license_key=$GLOO_GATEWAY_LICENSE_KEY \
+-f - <<EOF
+gloo:
+  gatewayProxies:
+    gatewayProxy:
+      disabled: true
+  kubeGateway:
+    enabled: true
+  gloo:
+    disableLeaderElection: true
+gloo-fed:
+  enabled: false
+  glooFedApiserver:
+    enable: false
+grafana:
+  defaultInstallationEnabled: false
+observability:
+  enabled: false
+prometheus:
+  enabled: false
+EOF
+```
+
+5. Ensure that Gloo Gateway v1 is running as expected
+```
+kubectl get pods -n gloo-system
+```
+
+6. Retrieve the Gateway Class 
+```
+kubectl get gatewayclass gloo-gateway
+```
