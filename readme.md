@@ -275,6 +275,10 @@ WIP
 - Load balanced routing
 - 
 
+## GitOps Configuration (Argocd)
+
+WIP
+
 
 ## Cleanup
 To prepare your environment for the next part of the demo, which will be on Gloo Gateway v1 with Portal, destroy your cluster.
