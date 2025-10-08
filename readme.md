@@ -279,6 +279,8 @@ WIP
 
 WIP
 
+https://docs.solo.io/gateway/latest/integrations/argo/
+
 
 ## Cleanup
 To prepare your environment for the next part of the demo, which will be on Gloo Gateway v1 with Portal, destroy your cluster.
