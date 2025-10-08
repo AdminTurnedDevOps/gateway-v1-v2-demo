@@ -11,6 +11,10 @@ The purpose of this demo is to showcase how to not only install and configure Gl
 
 And overall traffic management needs
 
+# Gloo Gateway V2 Configs
+
+The following sections will showcase everything from a Gloo Gateway V2 perspective including installation, configuration, and resilience configs.
+
 ## Installation Gloo Gateway v2
 
 ### Helm
@@ -99,3 +103,7 @@ EOF
 ## Gloo Portal
 
 ## Monitoring, Observability, & Telemetry
+
+
+
+# Gloo Gateway V1 (Portal)
