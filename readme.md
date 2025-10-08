@@ -439,6 +439,8 @@ https://docs.solo.io/gateway/latest/portal/tutorials/setup/#apps
 
 ### Create API Products
 
+For this section, please use the **Tracks** section as that's the demo app you deployed in the previous section
+
 https://docs.solo.io/gateway/latest/portal/tutorials/portal/
 
 ### Create A Portal
