@@ -45,6 +45,8 @@ terraform plan
 terraform apply --auto-approve
 ```
 
+![](images/2.png)
+
 
 ### Helm
 1. Configure product key env variables
@@ -55,23 +57,26 @@ export AGENTGATEWAY_LICENSE_KEY=
 ```
 
 2. Install Kubernetes Gateway API
+You need the experimental version as Gloo Gateway v2 has a requirement of the `BackendConfigPolicy` object, which is an experimental feature in Kubernetes Gateway API.
+
 ```
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml --context=$CLUSTER1
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/experimental-install.yaml
 ```
 
 3. Install Gloo Gateway v2 CRDs
 ```
 helm upgrade -i gloo-gateway-crds oci://us-docker.pkg.dev/solo-public/gloo-gateway/charts/gloo-gateway-crds \
---create-namespace \
 --namespace gloo-system \
---version 2.0.0-rc.2
+--version 2.0.0-rc.2 \
+--create-namespace
 ```
 
-4. Install Gloo Gateway v2 CRDs
+4. Install Gloo Gateway v2
 ```
 helm upgrade -i gloo-gateway oci://us-docker.pkg.dev/solo-public/gloo-gateway/charts/gloo-gateway \
 -n gloo-system \
 --version 2.0.0-rc.2 \
+--set gateway.aiExtension.enabled=true \
 --set agentgateway.enabled=true \
 --set licensing.glooGatewayLicenseKey=$GLOO_GATEWAY_LICENSE_KEY \
 --set licensing.agentgatewayLicenseKey=$AGENTGATEWAY_LICENSE_KEY
@@ -115,7 +120,7 @@ metadata:
   name: frontend-gateway
   namespace: microapp
 spec:
-  gatewayClassName: istio
+  gatewayClassName: gloo-gateway-v2
   listeners:
   - name: frontend
     port: 80
