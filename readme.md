@@ -161,10 +161,22 @@ frontend-gateway   gloo-gateway-v2   x.x.x.x   True         36m
 
 ![](images/3.png)
 
+## Gateway UI
 
 
 ## Monitoring, Observability, & Telemetry
 
+## Cleanup
+To prepare your environment for the next part of the demo, which will be on Gloo Gateway v1 with Portal, destroy your cluster.
 
+If you use the GKE config within this repo:
+
+1. `cd` into the **ggv2/gke1** directory.
+
+2. Destroy the cluster
+```
+terraform destroy --auto-approve
+```
 
 # Gloo Gateway V1 (Portal)
+In this section, you will find the full configuration for setting up Gloo Gateway v1. The reason why v1 will be used is because Portal will not be GA until Gloo Gateway v2.2., which should be out in January of 2026.
