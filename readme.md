@@ -264,6 +264,9 @@ You'll now be able to see Metrics and create Dashboard in Grafana
 
 ![](images/6.png)
 
+**ADD IN LIVE TRAFFIC DEBUGGING**
+**ADD IN more observability pieces**
+
 ## Rate Limiting
 
 WIP
@@ -273,7 +276,8 @@ WIP
 WIP
 
 - Load balanced routing
-- 
+- Canary
+- Authenication
 
 ## GitOps Configuration (Argocd)
 
