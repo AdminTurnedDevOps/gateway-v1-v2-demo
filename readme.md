@@ -264,6 +264,10 @@ You'll now be able to see Metrics and create Dashboard in Grafana
 
 ![](images/6.png)
 
+## Rate Limiting
+
+## 
+
 
 ## Cleanup
 To prepare your environment for the next part of the demo, which will be on Gloo Gateway v1 with Portal, destroy your cluster.
@@ -337,7 +341,7 @@ The installation also includes:
 - Prometheus
 
 ```
-helm install -n gloo-system gloo glooe/gloo-ee \
+helm upgrade --install -n gloo-system gloo glooe/gloo-ee \
 --create-namespace \
 --version 1.20.1 \
 --set-string license_key=$GLOO_GATEWAY_LICENSE_KEY \
@@ -348,6 +352,8 @@ gloo:
       disabled: true
   kubeGateway:
     enabled: true
+    portal:
+      enabled: true
   gloo:
     disableLeaderElection: true
 gloo-fed:
@@ -371,4 +377,54 @@ kubectl get pods -n gloo-system
 6. Retrieve the Gateway Class 
 ```
 kubectl get gatewayclass gloo-gateway
+```
+
+## Portal
+
+In this previous section, you installed Gloo Gateway v1. If you take a look at the Helm config, the `portal: true` was already added in, so you won't need to do any extra configuration for the installation of Portal.
+
+1. Ensure Portal is up and operational
+```
+kubectl get pods -n gloo-system -l app=gateway-portal-web-server
+```
+
+You should see an output similar to the below:
+```
+NAME                                        READY   STATUS    RESTARTS   AGE
+gateway-portal-web-server-c9c78db5b-dfpfm   1/1     Running   0          2m1s
+```
+
+If you have `glooctl` installed, you can also check to confirm that all implementations (xDS, Gateways, Proxies, Rate Limiting Server, etc.) is ready to go.
+
+```
+glooctl check
+
+glooctl binary version (1.19.6) differs from server components (v1.20.1) by at least a minor version.
+Consider running:
+glooctl upgrade --release=v1.20.1
+----------
+
+Checking Deployments... OK
+Checking Pods... OK
+Checking Upstreams... OK
+Checking UpstreamGroups... OK
+Checking AuthConfigs... OK
+Checking RateLimitConfigs... OK
+Checking VirtualHostOptions... OK
+Checking RouteOptions... OK
+Checking Secrets... OK
+Checking VirtualServices... OK
+Checking Gateways... OK
+Checking Proxies... OK
+No active gateway-proxy pods exist in cluster
+Checking xds metrics... OK
+Checking rate limit server... OK
+
+Detected Kubernetes Gateway integration!
+Checking Kubernetes GatewayClasses... OK
+Checking Kubernetes Gateways... OK
+Checking Kubernetes HTTPRoutes... OK
+
+Skipping Gloo Instance check -- Gloo Federation not detected.
+No problems detected.
 ```
