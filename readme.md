@@ -309,10 +309,10 @@ EOF
 
 2. Confirm that the traffic policy has been created
 ```
-kubectl get trafficpolicy -n microapp
+kubectl get glootrafficpolicy -n microapp
 
-NAME             ACCEPTED   ATTACHED
-local-frontend   True       True
+NAME             AGE
+local-frontend   71s
 ```
 
 3. Curl the demo app.
@@ -327,9 +327,9 @@ curl -n http://34.23.86.111
 local_rate_limited% 
 ```
 
-The reason why is because the `TrafficPolicy` configured only has one (1) token and it is refilled every 100 seconds.
+The reason why is because the `GlooTrafficPolicy` configured only has one (1) token and it is refilled every 100 seconds.
 
-5. Delete the `TrafficPolicy` to avoid any rate limiting issues for the testing through the POC.
+5. Delete the `GlooTrafficPolicy` to avoid any rate limiting issues for the testing through the POC.
 
 ## Advanced Routing
 
