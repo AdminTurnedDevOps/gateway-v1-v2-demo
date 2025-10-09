@@ -370,11 +370,82 @@ WIP
 
 https://docs.solo.io/gateway/2.0.x/traffic-management/
 
-## Resiliency
+## Resiliency/Circuit Breaking
 
-WIP
+In this section, you will find three subsections that showcase resilience configurations and circuit breaking (outlier detection and connection settings)
 
-https://docs.solo.io/gateway/2.0.x/resiliency/
+### Outlier Detection
+
+Outlier Detection in Circuit Breaking is all about removing an unhealthy host (Pod) from the load balancing pool.
+
+The test configuration below specifies that if the frontend host returns one 5XX HTTP response code, it'll eject the unhealthy host (Pod) for one hour.
+
+The unhealthy host (Pod) will then be brought back into the load balancing pool after the one hour is up
+
+```
+kubectl apply -f- <<EOF
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: BackendConfigPolicy
+metadata:
+  name: microapp-dead-app-protection
+  namespace: microapp
+spec:
+  targetRefs:
+    - name: frontend
+      group: ""
+      kind: Service
+  outlierDetection:
+    interval: 2s
+    consecutive5xx: 1
+    baseEjectionTime: 1h
+    maxEjectionPercent: 80
+EOF
+```
+
+### HTTP Connecting Settings
+
+1. Timeout and read/write buffer limits for connections to the Service.
+```
+kubectl apply -f - <<EOF
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: BackendConfigPolicy
+metadata:
+  name: microapp-buffer
+  namespace: microapp
+spec:
+  targetRefs:
+    - name: httpbin
+      group: ""
+      kind: Service
+  connectTimeout: 5s
+  perConnectionBufferLimitBytes: 1024
+EOF
+```
+
+2. Additional connection options when handling upstream HTTP requests
+```
+kubectl apply -f - <<EOF
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: BackendConfigPolicy
+metadata:
+  name: microapp-connections
+  namespace: microapp
+spec:
+  targetRefs:
+    - name: frontend
+      group: ""
+      kind: Service
+  commonHttpProtocolOptions:
+    idleTimeout: 10s
+    maxHeadersCount: 15
+    maxStreamDuration: 30s
+    maxRequestsPerConnection: 100
+EOF
+```
+
+### Retries
+
+
 
 ## Cleanup
 To prepare your environment for the next part of the demo, which will be on Gloo Gateway v1 with Portal, destroy your cluster.
