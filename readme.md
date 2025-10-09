@@ -468,6 +468,46 @@ https://docs.solo.io/gateway/latest/portal/tutorials/portal/
 
 https://docs.solo.io/gateway/latest/portal/tutorials/apis/
 
+## Agentgateway
+
+agentgateway is a way to secure, observe, and control the traffic to and from LLMs and MCP servers.
+
+This wouldn't be part of a standard Gloo Gateway POC, but if interesting in seeing it, it's a "nice to see".
+
+### Helm
+1. Configure product key env variables
+
+```
+export GLOO_GATEWAY_LICENSE_KEY=
+export AGENTGATEWAY_LICENSE_KEY=
+```
+
+2. Install Kubernetes Gateway API
+You need the experimental version as Gloo Gateway v2 has a requirement of the `BackendConfigPolicy` object, which is an experimental feature in Kubernetes Gateway API.
+
+```
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/experimental-install.yaml
+```
+
+3. Install Gloo Gateway v2 CRDs
+```
+helm upgrade -i gloo-gateway-crds oci://us-docker.pkg.dev/solo-public/gloo-gateway/charts/gloo-gateway-crds \
+--namespace gloo-system \
+--version 2.0.0-rc.2 \
+--create-namespace
+```
+
+4. Install Gloo Gateway v2
+```
+helm upgrade -i gloo-gateway oci://us-docker.pkg.dev/solo-public/gloo-gateway/charts/gloo-gateway \
+-n gloo-system \
+--version 2.0.0-rc.2 \
+--set gateway.aiExtension.enabled=true \
+--set agentgateway.enabled=true \
+--set licensing.glooGatewayLicenseKey=$GLOO_GATEWAY_LICENSE_KEY \
+--set licensing.agentgatewayLicenseKey=$AGENTGATEWAY_LICENSE_KEY
+```
+
 
 ## Helpful Docs
 
