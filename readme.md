@@ -445,6 +445,146 @@ EOF
 
 ### Retries
 
+Retries enhances an app’s availability by making sure that calls don’t fail permanently because of transient problems, such as a temporarily overloaded service or network.
+
+1. Delete the `HTTPRoute` that you created during the sample app deployment
+```
+kubectl delete httproute frontend -n microapp
+```
+
+2. Capture the Gateway address
+```
+export INGRESS_GW_ADDRESS=$(kubectl get svc -n microapp frontend-gateway -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
+echo $INGRESS_GW_ADDRESS
+```
+
+2. Set up an access policy that tracks the number of retries.
+```
+kubectl apply -f- <<EOF
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: HTTPListenerPolicy
+metadata:
+  name: access-logs
+  namespace: microapp
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: frontend-gateway
+  accessLog:
+  - fileSink:
+      path: /dev/stdout
+      jsonFormat:
+        start_time: "%START_TIME%"
+        method: "%REQ(:METHOD)%"
+        path: "%REQ(:PATH)%"
+        response_code: "%RESPONSE_CODE%"
+        response_flags: "%RESPONSE_FLAGS%"
+        upstream_host: "%UPSTREAM_HOST%"
+        upstream_cluster: "%UPSTREAM_CLUSTER%"
+EOF
+```
+
+2. Create a new `HTTPRoute` to test against. This `HTTPRoute` can be used within the `GlooTrafficPolicy` that applies a retry policy.
+```
+kubectl apply -f- <<EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: retry
+  namespace: microapp
+spec:
+  hostnames:
+  - retry.example
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: frontend-gateway
+    namespace: microapp
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - group: ""
+      kind: Service
+      name: frontend
+      port: 80
+    name: timeout
+EOF
+```
+
+3. Create the traffic policy for retries
+```
+kubectl apply -f- <<EOF
+apiVersion: gloo.solo.io/v1alpha1
+kind: GlooTrafficPolicy
+metadata:
+  name: retry
+  namespace: microapp
+spec:
+  targetRefs:
+  - kind: HTTPRoute
+    group: gateway.networking.k8s.io
+    name: retry
+    sectionName: timeout
+  retry:
+    attempts: 3
+    backoffBaseInterval: 1s
+    retryOn:
+    - 5xx
+    - unavailable
+  timeouts:
+    request: 20s
+EOF
+```
+
+4. Get the gateway address and send a request
+```
+curl -vi http://$INGRESS_GW_ADDRESS/cart -H "host: retry.example:8080"
+```
+
+5. Check that no retry occurred
+```
+kubectl logs -n microapp -l gateway.networking.k8s.io/gateway-name=frontend-gateway | tail -1 | jq
+```
+
+6. Scale the app down to `0`
+```
+kubectl scale deployment cartservice -n microapp --replicas=0
+```
+
+7. Curl again
+```
+curl -vi http://$INGRESS_GW_ADDRESS/cart -H "host: retry.example:8080"
+```
+
+8. Open a new tab while the `curl` is running and look at the logs
+```
+kubectl logs -n microapp -l gateway.networking.k8s.io/gateway-name=frontend-gateway | tail -1 | jq
+```
+
+You should see
+
+```
+{
+  "method": "GET",
+  "path": "/cart",
+  "response_code": 500,
+  "response_flags": "URX",
+  "start_time": "2025-10-09T17:38:28.530Z",
+  "upstream_cluster": "kube_microapp_frontend_80",
+  "upstream_host": "10.68.3.29:8080"
+}
+```
+
+URX = UpstreamRetryLimitExceeded (retries happened!)
+
+9. Scale back up
+```
+kubectl scale deployment cartservice -n microapp --replicas=1
+```
 
 
 ## Cleanup
