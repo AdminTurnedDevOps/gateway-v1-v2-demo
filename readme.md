@@ -111,6 +111,8 @@ kubectl get svc -n microapp
 
 4. Create a Gateway for the application
 
+The `allowedroutes` portion means that you can create an `HTTPRoute` resource from all Namespaces
+
 ```
 kubectl apply --context=$CLUSTER1 -f - <<EOF
 apiVersion: gateway.networking.k8s.io/v1
@@ -124,6 +126,9 @@ spec:
   - name: frontend
     port: 80
     protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: All
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -157,6 +162,8 @@ frontend-gateway   gloo-gateway-v2   x.x.x.x   True         36m
 ```
 
 ![](images/3.png)
+
+You can now `curl` the gateway IP or use a tool like Postman.
 
 ## Gateway UI
 1. Capture your cluster name as an environment variable for the UI installation in the coming steps.
