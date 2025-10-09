@@ -268,8 +268,13 @@ You'll now be able to see Metrics and create Dashboard in Grafana
 
 ![](images/6.png)
 
+For a list of metrics exposed via the Control Plane:
+
+![](images/7.png)
+
+
 **ADD IN LIVE TRAFFIC DEBUGGING**
-**ADD IN more observability pieces**
+
 
 https://docs.solo.io/gateway/2.0.x/observability/
 
