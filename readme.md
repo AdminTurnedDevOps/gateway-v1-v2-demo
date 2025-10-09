@@ -458,7 +458,7 @@ export INGRESS_GW_ADDRESS=$(kubectl get svc -n microapp frontend-gateway -o json
 echo $INGRESS_GW_ADDRESS
 ```
 
-2. Set up an access policy that tracks the number of retries.
+3. Set up an access policy that tracks the number of retries.
 ```
 kubectl apply -f- <<EOF
 apiVersion: gateway.kgateway.dev/v1alpha1
@@ -485,7 +485,7 @@ spec:
 EOF
 ```
 
-2. Create a new `HTTPRoute` to test against. This `HTTPRoute` can be used within the `GlooTrafficPolicy` that applies a retry policy.
+4. Create a new `HTTPRoute` to test against. This `HTTPRoute` can be used within the `GlooTrafficPolicy` that applies a retry policy.
 ```
 kubectl apply -f- <<EOF
 apiVersion: gateway.networking.k8s.io/v1
@@ -515,7 +515,7 @@ spec:
 EOF
 ```
 
-3. Create the traffic policy for retries
+5. Create the traffic policy for retries
 ```
 kubectl apply -f- <<EOF
 apiVersion: gloo.solo.io/v1alpha1
@@ -540,27 +540,27 @@ spec:
 EOF
 ```
 
-4. Get the gateway address and send a request
+6. Get the gateway address and send a request
 ```
 curl -vi http://$INGRESS_GW_ADDRESS/cart -H "host: retry.example:8080"
 ```
 
-5. Check that no retry occurred
+7. Check that no retry occurred
 ```
 kubectl logs -n microapp -l gateway.networking.k8s.io/gateway-name=frontend-gateway | tail -1 | jq
 ```
 
-6. Scale the app down to `0`
+8. Scale the app down to `0`
 ```
 kubectl scale deployment cartservice -n microapp --replicas=0
 ```
 
-7. Curl again
+9. Curl again
 ```
 curl -vi http://$INGRESS_GW_ADDRESS/cart -H "host: retry.example:8080"
 ```
 
-8. Open a new tab while the `curl` is running and look at the logs
+10. Open a new tab while the `curl` is running and look at the logs
 ```
 kubectl logs -n microapp -l gateway.networking.k8s.io/gateway-name=frontend-gateway | tail -1 | jq
 ```
@@ -581,7 +581,7 @@ You should see
 
 URX = UpstreamRetryLimitExceeded (retries happened!)
 
-9. Scale back up
+11. Scale back up
 ```
 kubectl scale deployment cartservice -n microapp --replicas=1
 ```
