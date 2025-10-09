@@ -467,3 +467,14 @@ https://docs.solo.io/gateway/latest/portal/tutorials/portal/
 ### Create A Portal
 
 https://docs.solo.io/gateway/latest/portal/tutorials/apis/
+
+
+## Helpful Docs
+
+Based on the Evaluation Criteria doc, the following links will be of help for knowing that Gloo Gateway supports what you need.
+
+1. JWT/Payload support: https://docs.solo.io/gateway/2.0.x/security/jwt/overview/
+2. Load balancing support: https://docs.solo.io/gateway/2.0.x/traffic-management/session-affinity/loadbalancing/
+3. Kubernetes CRD (API/object/kind) support: https://docs.solo.io/gateway/2.0.x/reference/api/gloo-gateway/
+4. Gloo Mesh/Gloo Gateway working together in multi-cluster support: https://github.com/AdminTurnedDevOps/ambient-mesh-lite-demo/blob/main/multi-cluster/sampleapp-microdemo/setup.md
+5. Canary deployments with Mirroring: https://docs.solo.io/gateway/2.0.x/resiliency/mirroring/
