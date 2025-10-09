@@ -465,7 +465,7 @@ https://docs.solo.io/gateway/latest/portal/tutorials/portal/
 
 https://docs.solo.io/gateway/latest/portal/tutorials/apis/
 
-## Agentgateway
+## Agentgateway (GGv2)
 
 agentgateway is a way to secure, observe, and control the traffic to and from LLMs and MCP servers.
 
