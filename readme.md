@@ -275,7 +275,61 @@ https://docs.solo.io/gateway/2.0.x/observability/
 
 ## Rate Limiting
 
-WIP
+With Gloo Gateway v2, you will see that there is a Rate Limit server out of the box.
+
+```
+kubectl get svc -n gloo-system
+NAME                               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+rate-limiter-gloo-gateway-v2       ClusterIP   34.118.226.186   <none>        8083/TCP,8084/TCP,9091/TCP   6m1s
+```
+
+You can set the traffic policy for the `HTTPRoute` that you configured a few sections ago.
+
+1. Apply the `TrafficPolicy` for local rate limiting
+```
+kubectl apply -f- <<EOF
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
+metadata:
+  name: local-frontend
+  namespace: microapp
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: frontend
+  rateLimit:
+    local:
+      tokenBucket:
+        maxTokens: 1
+        tokensPerFill: 1
+        fillInterval: 100s
+EOF
+```
+
+2. Confirm that the traffic policy was accepted
+```
+kubectl get trafficpolicy -n microapp
+
+NAME             ACCEPTED   ATTACHED
+local-frontend   True       True
+```
+
+3. Curl the demo app.
+```
+curl -n http://34.23.86.111
+```
+
+
+4. Send the `curl` again and you'll see an output like the below:
+
+```
+local_rate_limited% 
+```
+
+The reason why is because the `TrafficPolicy` configured only has one (1) token and it is refilled every 100 seconds.
+
+5. Delete the `TrafficPolicy` to avoid any rate limiting issues for the testing through the POC.
 
 ## Advanced Routing
 
