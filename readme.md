@@ -273,10 +273,33 @@ For a list of metrics exposed via the Control Plane:
 ![](images/7.png)
 
 
-**ADD IN LIVE TRAFFIC DEBUGGING**
+## Traffic Debugging
 
+Debugging live traffic, ensuring health of traffic, and showcasing policies can be done from your monitoring & observability tool of choice, but also form the Gloo UI.
 
-https://docs.solo.io/gateway/2.0.x/observability/
+1. Port-forward to the deployed UI
+```
+kubectl port-forward deployment/gloo-mesh-ui -n gloo-system 8090
+```
+
+2. Access the UI in a browser
+
+```
+127.0.0.1:8090
+```
+
+From the dashboard, you can see requests per second, errors, and any latency that may be occurring, or has occurred, within your application.
+
+![](images/8.png)
+
+The Graph can give you information on how your Services are connected and various forms of telemetry data like requests, latency, and errors. 
+
+![](images/9.png)
+![](images/10.png)
+
+Without Routes, you can see the HTTP Routes for your application including any hostnames, the Gateways the route is attached to, and the path/destination.
+
+![](images/11.png)
 
 ## Rate Limiting
 
