@@ -280,6 +280,7 @@ WIP
 - Load balanced routing
 - Canary
 - Authenication
+- Redirection
 
 https://docs.solo.io/gateway/2.0.x/traffic-management/
 
