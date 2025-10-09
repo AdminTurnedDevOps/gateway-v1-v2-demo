@@ -288,8 +288,8 @@ You can set the traffic policy for the `HTTPRoute` that you configured a few sec
 1. Apply the `TrafficPolicy` for local rate limiting
 ```
 kubectl apply -f- <<EOF
-apiVersion: gateway.kgateway.dev/v1alpha1
-kind: TrafficPolicy
+apiVersion: gloo.solo.io/v1alpha1
+kind: GlooTrafficPolicy
 metadata:
   name: local-frontend
   namespace: microapp
@@ -307,7 +307,7 @@ spec:
 EOF
 ```
 
-2. Confirm that the traffic policy was accepted
+2. Confirm that the traffic policy has been created
 ```
 kubectl get trafficpolicy -n microapp
 
