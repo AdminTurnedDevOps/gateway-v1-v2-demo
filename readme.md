@@ -457,7 +457,12 @@ EOF
 ```
 
 
-### Canary Deployments
+### Mirroring (Canary Deployments)
+
+To test Mirroring (Canary), you'll need an application that has two versions readily available. Because of that, you can follow two instruction sets (they're short) to ensure you have the proper environment for Mirroring.
+
+1. Deploy the http app, which has v1 and v2 available out of the box: https://docs.solo.io/gateway/2.0.x/operations/sample-app/
+2. Use these instructions after you deploy the http app: https://docs.solo.io/gateway/2.0.x/resiliency/mirroring/
 
 ### Load Balancing
 
