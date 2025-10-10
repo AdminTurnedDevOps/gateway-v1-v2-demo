@@ -503,7 +503,59 @@ EOF
 ### Redirection
 
 
-https://docs.solo.io/gateway/2.0.x/traffic-management/
+
+1. Set a variable with the Gateway for the frontend app that you deployed in a previous section
+```
+export INGRESS_GW_ADDRESS=$(kubectl get svc -n microapp frontend-gateway -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
+echo $INGRESS_GW_ADDRESS
+```
+
+2. Curl the Gateway address to confirm it works
+```
+curl -vik http://$INGRESS_GW_ADDRESS
+```
+
+3. Create an HTTP Route that configures a redirect
+```
+kubectl apply -f- <<EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: frontend-redirect
+  namespace: microapp
+spec:
+  parentRefs:
+    - name: frontend-gateway
+      namespace: microapp
+  hostnames:
+    - host.redirect.example
+  rules:
+    - filters:
+      - type: RequestRedirect
+        requestRedirect:
+          hostname: "www.example.com"
+          statusCode: 302
+EOF
+```
+
+4. Curl the Gateway with the redirect host
+```
+curl -vi http://$INGRESS_GW_ADDRESS -H "host: host.redirect.example:8080"
+```
+
+5. You should see a `302` similar to the below
+```
+*   Trying 35.231.233.180:80...
+* Connected to 35.231.233.180 (35.231.233.180) port 80
+> GET / HTTP/1.1
+> Host: host.redirect.example:8080
+> User-Agent: curl/8.7.1
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 302 Found
+HTTP/1.1 302 Found
+```
 
 ## Resiliency/Circuit Breaking
 
