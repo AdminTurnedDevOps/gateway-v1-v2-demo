@@ -368,12 +368,101 @@ The reason why is because the `GlooTrafficPolicy` configured only has one (1) to
 
 ## Advanced Routing
 
-WIP
+In this section, you will find advanced routing and authentication implementations like JWT and Canary.
 
-- Load balanced routing
-- Canary
-- Authenication
-- Redirection
+### JWT (Authentication)
+
+1. Set a variable with the Gateway for the frontend app that you deployed in a previous section
+```
+export INGRESS_GW_ADDRESS=$(kubectl get svc -n microapp frontend-gateway -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
+echo $INGRESS_GW_ADDRESS
+```
+
+2. Create the Gloo Traffic Policy that specifies the need for a JWT token
+```
+kubectl apply -f- <<EOF
+apiVersion: gloo.solo.io/v1alpha1
+kind: GlooTrafficPolicy
+metadata:
+  name: jwt
+  namespace: microapp
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: frontend-gateway
+  glooJWT:
+    beforeExtAuth:
+      providers:
+        selfminted:
+          issuer: solo.io
+          jwks:
+            local:
+              key: '{"keys":[{"kty":"RSA","kid":"solo-public-key-001","use":"sig","alg":"RS256","n":"AOfIaJMUm7564sWWNHaXt_hS8H0O1Ew59-nRqruMQosfQqa7tWne5lL3m9sMAkfa3Twx0LMN_7QqRDoztvV3Wa_JwbMzb9afWE-IfKIuDqkvog6s-xGIFNhtDGBTuL8YAQYtwCF7l49SMv-GqyLe-nO9yJW-6wIGoOqImZrCxjxXFzF6mTMOBpIODFj0LUZ54QQuDcD1Nue2LMLsUvGa7V1ZHsYuGvUqzvXFBXMmMS2OzGir9ckpUhrUeHDCGFpEM4IQnu-9U8TbAJxKE5Zp8Nikefr2ISIG2Hk1K2rBAc_HwoPeWAcAWUAR5tWHAxx-UXClSZQ9TMFK850gQGenUp8","e":"AQAB"}]}'
+EOF
+```
+
+3. Curl the Gateway address
+```
+curl -vik http://$INGRESS_GW_ADDRESS
+```
+
+You should see a failure similar to the below:
+
+```
+* Connection #0 to host 35.231.233.180 left intact
+Jwt is missing%                                                                                                                                           
+```
+
+4. Export the token for authentication to the frontend app
+```
+export BOB_TOKEN=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InNvbG8tcHVibGljLWtleS0wMDEifQ.eyJpc3MiOiJzb2xvLmlvIiwib3JnIjoic29sby5pbyIsInN1YiI6ImJvYiIsInRlYW0iOiJvcHMiLCJleHAiOjIwNzQyNzQ5NTQsImxsbXMiOnsibWlzdHJhbGFpIjpbIm1pc3RyYWwtbGFyZ2UtbGF0ZXN0Il19fQ.GF_uyLpZSTT1DIvJeO_eish1WDjMaS4BQSifGQhqPRLjzu3nXtPkaBRjceAmJi9gKZYAzkT25MIrT42ZIe3bHilrd1yqittTPWrrM4sWDDeldnGsfU07DWJHyboNapYR-KZGImSmOYshJlzm1tT_Bjt3-RK3OBzYi90_wl0dyAl9D7wwDCzOD4MRGFpoMrws_OgVrcZQKcadvIsH8figPwN4mK1U_1mxuL08RWTu92xBcezEO4CdBaFTUbkYN66Y2vKSTyPCxg3fLtg1mvlzU1-Wgm2xZIiPiarQHt6Uq7v9ftgzwdUBQM1AYLvUVhCN6XkkR9OU3p0OXiqEDjAxcg
+```
+
+5. Run the curl again
+```
+curl -vik http://$INGRESS_GW_ADDRESS \
+--header "Authorization: Bearer $BOB_TOKEN"
+```
+
+You should see an output similar to the below, indicating that the token was accepted
+
+```
+* Connection #0 to host 35.231.233.180 left intact
+```
+
+6. Delete the JWT policy
+
+```
+kubectl delete -f- <<EOF
+apiVersion: gloo.solo.io/v1alpha1
+kind: GlooTrafficPolicy
+metadata:
+  name: jwt
+  namespace: microapp
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: frontend-gateway
+  glooJWT:
+    beforeExtAuth:
+      providers:
+        selfminted:
+          issuer: solo.io
+          jwks:
+            local:
+              key: '{"keys":[{"kty":"RSA","kid":"solo-public-key-001","use":"sig","alg":"RS256","n":"AOfIaJMUm7564sWWNHaXt_hS8H0O1Ew59-nRqruMQosfQqa7tWne5lL3m9sMAkfa3Twx0LMN_7QqRDoztvV3Wa_JwbMzb9afWE-IfKIuDqkvog6s-xGIFNhtDGBTuL8YAQYtwCF7l49SMv-GqyLe-nO9yJW-6wIGoOqImZrCxjxXFzF6mTMOBpIODFj0LUZ54QQuDcD1Nue2LMLsUvGa7V1ZHsYuGvUqzvXFBXMmMS2OzGir9ckpUhrUeHDCGFpEM4IQnu-9U8TbAJxKE5Zp8Nikefr2ISIG2Hk1K2rBAc_HwoPeWAcAWUAR5tWHAxx-UXClSZQ9TMFK850gQGenUp8","e":"AQAB"}]}'
+EOF
+```
+
+
+### Canary Deployments
+
+### Load Balancing
+
+### Redirection
+
 
 https://docs.solo.io/gateway/2.0.x/traffic-management/
 
