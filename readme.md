@@ -81,6 +81,13 @@ helm upgrade -i gloo-gateway oci://us-docker.pkg.dev/solo-public/gloo-gateway/ch
 --set licensing.glooGatewayLicenseKey=$GLOO_GATEWAY_LICENSE_KEY
 ```
 
+5. Confirm that Gloo Gateway is running
+```
+kubectl get pods -n gloo-system
+NAME                           READY   STATUS    RESTARTS   AGE
+gloo-gateway-6dfbfb7d7-9kbhf   1/1     Running   0          2m38s
+```
+
 
 #### Argo/GitOps
 
