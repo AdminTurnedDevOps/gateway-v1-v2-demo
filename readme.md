@@ -466,6 +466,40 @@ To test Mirroring (Canary), you'll need an application that has two versions rea
 
 ### Load Balancing
 
+There are several methods of load balancing:
+1. Least Requests
+2. Round robin
+3. Random
+
+The goal with load balancing is for the LB policy to hit hosts (Pods) that have the least amount of load. That way, performance can occur as expected.
+
+The following Round Robin policy will:
+- Set slow start more to progressively increase the amount of traffic that is routed to it
+- Set the duration of the slow start
+- Increase the rate of traffic to the host (Pod)
+- Set a minimum percentage of weight that an endpoint needs to calcuate aggression
+
+```
+kubectl apply -f- <<EOF
+kind: BackendConfigPolicy
+apiVersion: gateway.kgateway.dev/v1alpha1
+metadata:
+  name: microapp-rr-policy
+  namespace: microapp
+spec:
+  targetRefs:
+    - name: frontend
+      group: ""
+      kind: Service
+  loadBalancer:
+    roundRobin:
+      slowStart:
+        window: 10s
+        aggression: "1.5"
+        minWeightPercent: 10
+EOF
+```
+
 ### Redirection
 
 
