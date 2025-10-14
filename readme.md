@@ -69,7 +69,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/downloa
 ```
 helm upgrade -i gloo-gateway-crds oci://us-docker.pkg.dev/solo-public/gloo-gateway/charts/gloo-gateway-crds \
 --namespace gloo-system \
---version 2.0.0-rc.2 \
+--version 2.0.0 \
 --create-namespace
 ```
 
@@ -77,7 +77,7 @@ helm upgrade -i gloo-gateway-crds oci://us-docker.pkg.dev/solo-public/gloo-gatew
 ```
 helm upgrade -i gloo-gateway oci://us-docker.pkg.dev/solo-public/gloo-gateway/charts/gloo-gateway \
 -n gloo-system \
---version 2.0.0-rc.2 \
+--version 2.0.0 \
 --set licensing.glooGatewayLicenseKey=$GLOO_GATEWAY_LICENSE_KEY
 ```
 
@@ -977,7 +977,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/downloa
 ```
 helm upgrade -i gloo-gateway-crds oci://us-docker.pkg.dev/solo-public/gloo-gateway/charts/gloo-gateway-crds \
 --namespace gloo-system \
---version 2.0.0-rc.2 \
+--version 2.0.0 \
 --create-namespace
 ```
 
@@ -985,7 +985,7 @@ helm upgrade -i gloo-gateway-crds oci://us-docker.pkg.dev/solo-public/gloo-gatew
 ```
 helm upgrade -i gloo-gateway oci://us-docker.pkg.dev/solo-public/gloo-gateway/charts/gloo-gateway \
 -n gloo-system \
---version 2.0.0-rc.2 \
+--version 2.0.0 \
 --set gateway.aiExtension.enabled=true \
 --set agentgateway.enabled=true \
 --set licensing.glooGatewayLicenseKey=$GLOO_GATEWAY_LICENSE_KEY \
