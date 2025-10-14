@@ -241,6 +241,8 @@ kubectl port-forward deployment/gloo-mesh-ui -n gloo-system 8090
 
 ## Monitoring, Observability, & Telemetry
 
+### Prometheus and Grafana Config
+
 1. Add the Grafana Helm Chart
 ```
 helm repo add grafana https://grafana.github.io/helm-charts
@@ -278,6 +280,414 @@ You'll now be able to see Metrics and create Dashboard in Grafana
 For a list of metrics exposed via the Control Plane:
 
 ![](images/7.png)
+
+### Monitoring, Observability, & Telemetry
+
+```
+export INGRESS_GW_ADDRESS=$(kubectl get svc -n microapp frontend-gateway -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
+echo $INGRESS_GW_ADDRESS
+```
+
+2. Install Loki (log aggregation) and Tempo (tracing)
+```
+helm upgrade --install loki loki \
+--repo https://grafana.github.io/helm-charts \
+--namespace telemetry \
+--create-namespace \
+--values - <<EOF
+loki:
+  commonConfig:
+    replication_factor: 1
+  schemaConfig:
+    configs:
+      - from: 2024-04-01
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  auth_enabled: false
+singleBinary:
+  replicas: 1
+minio:
+  enabled: true
+gateway:
+  enabled: false
+test:
+  enabled: false
+monitoring:
+  selfMonitoring:
+    enabled: false
+    grafanaAgent:
+      installOperator: false
+lokiCanary:
+  enabled: false
+limits_config:
+  allow_structured_metadata: true
+memberlist:
+  service:
+    publishNotReadyAddresses: true
+deploymentMode: SingleBinary
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+ingester:
+  replicas: 0
+querier:
+  replicas: 0
+queryFrontend:
+  replicas: 0
+queryScheduler:
+  replicas: 0
+distributor:
+  replicas: 0
+compactor:
+  replicas: 0
+indexGateway:
+  replicas: 0
+bloomCompactor:
+  replicas: 0
+bloomGateway:
+  replicas: 0
+EOF
+```
+
+```
+helm upgrade --install tempo tempo \
+--repo https://grafana.github.io/helm-charts \
+--namespace telemetry \
+--create-namespace \
+--values - <<EOF
+persistence:
+  enabled: false
+tempo:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+EOF
+```
+
+The next 3 steps are to deploy:
+- The OTel Metrics Collector
+- The OTel Log Collector (Loki)
+- The OTel Traces Collector (Tempo)
+
+OTel is an agnostic method of collecting logs, traces, and metrics in a vendor-neutral way.
+
+The OTel Collectors expose the data in Prometheus format so they can be scraped from the OTel collector, ingested into Prometheus, and visualized in monitoring tools like Grafana
+
+3. Deploy the OTel Metrics collector, which scrapes metrics from the Gloo Gateway control plane and data plane gateway proxies
+
+```
+helm upgrade --install opentelemetry-collector-metrics opentelemetry-collector \
+--repo https://open-telemetry.github.io/opentelemetry-helm-charts \
+--set mode=deployment \
+--set image.repository="otel/opentelemetry-collector-contrib" \
+--set command.name="otelcol-contrib" \
+--namespace=telemetry \
+--create-namespace \
+-f -<<EOF
+clusterRole:
+  create: true
+  rules:
+  - apiGroups:
+    - ''
+    resources:
+    - 'pods'
+    - 'nodes'
+    verbs:
+    - 'get'
+    - 'list'
+    - 'watch'
+ports:
+  promexporter:
+    enabled: true
+    containerPort: 80
+    servicePort: 80
+    protocol: TCP
+
+command:
+  extraArgs:
+    - "--feature-gates=receiver.prometheusreceiver.EnableNativeHistograms"
+
+config:
+  receivers:
+    prometheus/kgateway-dataplane:
+      config:
+        global:
+          scrape_protocols: [ PrometheusProto, OpenMetricsText1.0.0, OpenMetricsText0.0.1, PrometheusText0.0.4 ]
+        scrape_configs:
+        # Scrape the kgateway proxy pods
+        - job_name: kgateway-gateways
+          honor_labels: true
+          kubernetes_sd_configs:
+          - role: pod
+          relabel_configs:
+            - action: keep
+              regex: kube-gateway
+              source_labels:
+              - __meta_kubernetes_pod_label_kgateway
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - action: replace
+              source_labels:
+              - __meta_kubernetes_pod_ip
+              - __meta_kubernetes_pod_annotation_prometheus_io_port
+              separator: ':'
+              target_label: __address__
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: kube_namespace
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: pod
+    prometheus/kgateway-controlplane:
+      config:
+        global:
+          scrape_protocols: [ PrometheusProto, OpenMetricsText1.0.0, OpenMetricsText0.0.1, PrometheusText0.0.4 ]
+        scrape_configs:
+        # Scrape the kgateway controlplane pods
+        - job_name: kgateway-controlplane
+          honor_labels: true
+          kubernetes_sd_configs:
+          - role: pod
+          relabel_configs:
+            - action: keep
+              regex: kgateway
+              source_labels:
+              - __meta_kubernetes_pod_label_kgateway
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - action: replace
+              source_labels:
+              - __meta_kubernetes_pod_ip
+              - __meta_kubernetes_pod_annotation_prometheus_io_port
+              separator: ':'
+              target_label: __address__
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: kube_namespace
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: pod
+  exporters:
+    prometheus:
+      endpoint: http://prometheus-server.gloo-system.svc:80
+    prometheusremotewrite/prometheus:
+      endpoint: http://prometheus-server.gloo-system.svc:80/api/v1/write
+    debug:
+      verbosity: detailed
+  service:
+    pipelines:
+      metrics:
+        receivers: [prometheus/kgateway-dataplane, prometheus/kgateway-controlplane]
+        processors: [batch]
+        exporters: [debug, prometheusremotewrite/prometheus]
+EOF
+```
+4. Deploy the OTel log collector
+```
+helm upgrade --install opentelemetry-collector-logs opentelemetry-collector \
+--repo https://open-telemetry.github.io/opentelemetry-helm-charts \
+--set mode=deployment \
+--set image.repository="otel/opentelemetry-collector-contrib" \
+--set command.name="otelcol-contrib" \
+--namespace=telemetry \
+--create-namespace \
+-f -<<EOF
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+  exporters:
+    otlphttp/loki:
+      endpoint: http://loki.telemetry.svc.cluster.local:3100/otlp
+      tls:
+        insecure: true
+    debug:
+      verbosity: detailed
+  service:
+    pipelines:
+      logs:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [debug, otlphttp/loki]
+EOF
+```
+
+5. Deploy the OTel Tracing collector
+```
+helm upgrade --install opentelemetry-collector-traces opentelemetry-collector \
+--repo https://open-telemetry.github.io/opentelemetry-helm-charts \
+--set mode=deployment \
+--set image.repository="otel/opentelemetry-collector-contrib" \
+--set command.name="otelcol-contrib" \
+--namespace=telemetry \
+--create-namespace \
+-f -<<EOF
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+  exporters:
+    otlp/tempo:
+      endpoint: http://tempo.telemetry.svc.cluster.local:4317
+      tls:
+        insecure: true
+    debug:
+      verbosity: detailed
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [debug, otlp/tempo]
+EOF
+```
+
+6. Confirm that the collector Pods are running for Logs, Traces, and Metrics.
+```
+kubectl get pods -n telemetry
+```
+
+7. Go to Grafana and under **Connections > Data sources**, add in the data sources for Tempo and Loki
+
+Loki URL:http://loki.telemetry.svc.cluster.local:3100/otlp
+Tempo URL: http://tempo.telemetry.svc.cluster.local:4317
+Prometheus/Metrics endpoint: http://kube-prometheus-stack-prometheus.telemetry:9090
+
+The next step is to set up an `HTTPListenerPolicy` and a `ReferenceGrant, which works together to configure Gloo Gateway to send telemtry data.
+
+`HTTPListenerPolicy` configures Gloo Gateway capture the traces and logs from incoming requests. It then sends that data to the OTEl collectors
+
+`ReferenceGrant` allows cross-namespace service references. Since the Gateway is in the `microapp` Namespace, the `ReferenceGrant` allows OTel collectors that are in the `telemetry` Namespace to reference those services
+
+8. HTTP Listener to collect and store logs in Loki and a reference grans so that the Listener Policy can apply to the OTel logs collector service
+```
+kubectl apply -f- <<EOF
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: HTTPListenerPolicy
+metadata:
+  name: logging-policy
+  namespace: microapp
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: frontend-gateway
+  accessLog:
+  - openTelemetry:
+      grpcService:
+        backendRef:
+          name: opentelemetry-collector-logs
+          namespace: telemetry
+          port: 4317
+        logName: "http-gateway-access-logs"
+      body: >-
+        "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %RESPONSE_CODE% "%REQ(:AUTHORITY)%" "%UPSTREAM_CLUSTER%"'
+EOF
+```
+
+```
+kubectl apply -f- <<EOF
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-otel-collector-logs-access
+  namespace: telemetry
+spec:
+  from:
+  - group: gateway.kgateway.dev
+    kind: HTTPListenerPolicy
+    namespace: microapp
+  to:
+  - group: ""
+    kind: Service
+    name: opentelemetry-collector-logs
+EOF
+```
+
+9. HTTP Listener to collect and store traces in Tempo and a reference grans so that the Listener Policy can apply to the OTel logs collector service
+```
+kubectl apply -f- <<EOF
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: HTTPListenerPolicy
+metadata:
+  name: tracing-policy
+  namespace: microapp
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: frontend-gateway
+  tracing:
+    provider:
+      openTelemetry:
+        serviceName: frontend
+        grpcService:
+          backendRef:
+            name: opentelemetry-collector-traces
+            namespace: telemetry
+            port: 4317
+    spawnUpstreamSpan: true
+EOF
+```
+
+```
+kubectl apply -f- <<EOF
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-otel-collector-traces-access
+  namespace: telemetry
+spec:
+  from:
+  - group: gateway.kgateway.dev
+    kind: HTTPListenerPolicy
+    namespace: microapp
+  to:
+  - group: ""
+    kind: Service
+    name: opentelemetry-collector-traces
+EOF
+```
+
+10. Test that the Traces are working
+```
+for i in {1..5}; do curl -v http://$INGRESS_GW_ADDRESS; done
+```
+
+You should now be able to see Traces in Grafana
+
+![](images/12.png)
 
 
 ## Traffic Debugging
